@@ -4,6 +4,8 @@ import { useState } from 'react';
 import './App.css';
 import { Col, Container, Row } from 'react-bootstrap';
 import Table from 'react-bootstrap/Table';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
 	let [formData, setFromData] = useState({
@@ -27,22 +29,64 @@ function App() {
 
 	let submitHandle = (event) => {
 		event.preventDefault();
-		let formDatas = formData;
-		let usersData = [...userData, formDatas];
-		setUserData(usersData);
 
-		setFromData({
-			inputName: '',
-			inputEmail: '',
-			inputPhone: '',
-			inputPassowrd: '',
-			inputIndex: '',
-		});
+		if (formData.inputIndex === '') {
+			let uservalidation = userData.filter(
+				(v, i) =>
+					v.inputEmail == formData.inputEmail ||
+					v.inputPhone == formData.inputPhone
+			);
+			if (uservalidation.length > 0) {
+				toast.error('Email or Phone already exist...!');
+			} else {
+				let formDatas = formData;
+				let usersData = [...userData, formDatas];
+
+				setUserData(usersData);
+
+				setFromData({
+					inputName: '',
+					inputEmail: '',
+					inputPhone: '',
+					inputPassowrd: '',
+					inputIndex: '',
+				});
+				toast.success('Data saved');
+			}
+		} else {
+			let uservalidation = userData.filter(
+				(v, i) =>
+					(v.inputEmail == formData.inputEmail ||
+						v.inputPhone == formData.inputPhone) &&
+					i !== formData.inputIndex
+			);
+			if (uservalidation.length > 0) {
+				toast.error('Email or Phone already exist...!');
+			} else {
+				let indexNumber = formData.inputIndex;
+				let oldData = userData;
+				oldData[indexNumber]['inputName'] = formData.inputName;
+				oldData[indexNumber]['inputEmail'] = formData.inputEmail;
+				oldData[indexNumber]['inputPhone'] = formData.inputPhone;
+				oldData[indexNumber]['inputPassword'] = formData.inputPassowrd;
+				setUserData(oldData);
+
+				setFromData({
+					inputName: '',
+					inputEmail: '',
+					inputPhone: '',
+					inputPassowrd: '',
+					inputIndex: '',
+				});
+				toast.success('Update complete');
+			}
+		}
 	};
 
 	let deleteBtn = (indexNumber) => {
 		let afterDeleted = userData.filter((v, i) => i !== indexNumber);
 		setUserData(afterDeleted);
+		toast.success('Delete complete');
 	};
 
 	let updateBtn = (indexNumber) => {
@@ -54,7 +98,8 @@ function App() {
 
 	return (
 		<div className='App'>
-			<Container fluid>
+			<ToastContainer />
+			<Container>
 				<Row className='display-flex'>
 					<h1 className='fw-bold mt-5 text-center'>From controls</h1>
 					<Col className='col-lg-6 col-sm-12'>
@@ -78,6 +123,7 @@ function App() {
 									onChange={(event) => formHandle(event)}
 									type='text'
 									className='form-control'
+									required
 								/>
 							</div>
 							<div className='form-group'>
@@ -109,7 +155,8 @@ function App() {
 					</Col>
 
 					<Col className='col-lg-6 col-sm-12'>
-						<Table striped bordered hover className='mt-5'>
+						<h1 className='mt-5 text-center'>User Data</h1>
+						<Table striped bordered hover>
 							<thead>
 								<tr className='text-center'>
 									<th>S.L</th>
